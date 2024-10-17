@@ -140,6 +140,9 @@ if X is not None and y is not None:
     model, accuracy, feature_names = train_model(X, y)
 
     if model:
+        # Display selected disease name above the input form
+        st.subheader(f"Selected Disease: {dataset_name}")
+
         # User input form
         st.subheader("Enter Values to Predict the Outcome")
         with st.form(key='prediction_form', clear_on_submit=True):
