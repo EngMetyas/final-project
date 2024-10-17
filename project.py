@@ -169,7 +169,13 @@ if X is not None and y is not None:
         with st.form(key='prediction_form', clear_on_submit=True):
             user_inputs = {}
             for feature in feature_names:
-                if X[feature].dtype in [np.int64, np.float64]:
+                if feature == "Smoking":  # Check if the feature is "Smoking"
+                    user_input = st.selectbox(
+                        label="Do you smoke?",
+                        options=["No", "Yes"]
+                    )
+                    user_inputs[feature] = 1 if user_input == "Yes" else 0  # Set 1 for "Yes" and 0 for "No"
+                elif X[feature].dtype in [np.int64, np.float64]:
                     min_value = X[feature].min()
                     max_value = X[feature].max()
                     mean_value = X[feature].mean()
@@ -252,4 +258,4 @@ if X is not None and y is not None:
         Dr. Moshera Ghallab
         """)
 else:
-    st.warning("Please select a valid dataset to proceed.")
+    st.warning("Please select a
