@@ -201,6 +201,7 @@ if X is not None and y is not None:
                 input_data = pd.DataFrame([user_inputs])
 
                 # Encode categorical inputs using the same label encoders
+                unseen_label_detected = False  # Flag to check for unseen labels
                 for column in input_data.columns:
                     if column in label_encoders:
                         le = label_encoders[column]
@@ -208,22 +209,24 @@ if X is not None and y is not None:
                             input_data[column] = le.transform([input_data[column][0]])  # Handle known categorical data
                         else:
                             st.error(f"Error: The value '{input_data[column][0]}' for '{column}' was not seen during training. Please select a valid value.")
-                            return  # Stop the prediction if unseen label is detected
+                            unseen_label_detected = True  # Set the flag if unseen label is detected
+                            break  # Stop further processing if unseen label is found
                     else:
                         input_data[column] = pd.to_numeric(input_data[column], errors='coerce')  # Handle numerical data
 
-                # Ensure all features are present in the input data
-                for feature in feature_names:
-                    if feature not in input_data.columns:
-                        input_data[feature] = 0  # Set default value if feature is missing
+                if not unseen_label_detected:
+                    # Ensure all features are present in the input data
+                    for feature in feature_names:
+                        if feature not in input_data.columns:
+                            input_data[feature] = 0  # Set default value if feature is missing
 
-                # Reorder columns to match the training data
-                input_data = input_data[feature_names]
+                    # Reorder columns to match the training data
+                    input_data = input_data[feature_names]
 
-                # Make the prediction
-                prediction = model.predict(input_data)
-                outcome = "Infected" if prediction[0] == 1 else "Not Infected"
-                st.success(f"### Prediction Outcome: *{outcome}*")
+                    # Make the prediction
+                    prediction = model.predict(input_data)
+                    outcome = "Infected" if prediction[0] == 1 else "Not Infected"
+                    st.success(f"### Prediction Outcome: *{outcome}*")
             except NotFittedError:
                 st.error("Model is not fitted yet.")
             except Exception as e:
