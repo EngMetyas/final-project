@@ -68,7 +68,7 @@ st.title("🩺 Disease Prediction App")
 
 # Introduction message
 st.markdown("""
-Welcome to the *Disease Prediction App*! Select a dataset and enter the required values to determine if you're at risk of a particular disease.
+Welcome to the *Disease Prediction App*! Select a dataset from the sidebar and input the required values to determine if you're at risk of a particular disease.
 """)
 
 # Sidebar for navigation and dataset selection
@@ -82,7 +82,7 @@ dataset_name = st.sidebar.selectbox(
 
 # Define the path to datasets
 DATASETS = {
-    "Heart Disease ❤": "Heart_cleanedML.csv",
+    "Heart Disease ❤": "/mnt/data/HeartDiseaseML11.csv",  # Corrected file path
     "Brain Stroke 🧠": "brainstrokeML.csv",
     "Diabetes 🍭": "diabetesML1.csv"
 }
