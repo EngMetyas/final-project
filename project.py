@@ -82,7 +82,7 @@ dataset_name = st.sidebar.selectbox(
 
 # Define the path to datasets
 DATASETS = {
-    "Heart Disease ❤": "HeartDiseaseML11.csv",  
+    "Heart Disease ❤": "HeartDiseaseML11.csv",
     "Brain Stroke 🧠": "brainstrokeML.csv",
     "Diabetes 🍭": "diabetesML1.csv"
 }
