@@ -179,7 +179,6 @@ if X is not None and y is not None:
                         format="%.2f",
                         step=0.1
                     )
-                    user_inputs[feature] = user_input
                 else:
                     # Get the original categories from the label encoder
                     le = label_encoders.get(feature)
@@ -189,10 +188,9 @@ if X is not None and y is not None:
                             label=f"Select {feature}",
                             options=categories
                         )
-                        user_inputs[feature] = user_input
                     else:
                         user_input = st.text_input(f"Enter {feature}")
-                        user_inputs[feature] = user_input
+                user_inputs[feature] = user_input
 
             # Submit button
             submit_button = st.form_submit_button(label='Predict')
@@ -203,36 +201,24 @@ if X is not None and y is not None:
                 input_data = pd.DataFrame([user_inputs])
 
                 # Encode categorical inputs using the same label encoders
-                unseen_label_detected = False  # Flag to check for unseen labels
                 for column in input_data.columns:
                     if column in label_encoders:
                         le = label_encoders[column]
-                        # Check if the input value is known
-                        if input_data[column][0] in le.classes_:
-                            input_data[column] = le.transform([input_data[column][0]])  # Handle known categorical data
-                        else:
-                            # Gracefully handle unseen label by assigning the most common class (or any default value)
-                            st.warning(f"The value '{input_data[column][0]}' for '{column}' was not seen during training.")
-                            input_data[column] = le.transform([le.classes_[0]])  # Use the first known class as default
-                            unseen_label_detected = True  # Set flag for unseen labels
+                        input_data[column] = le.transform([input_data[column][0]])
                     else:
-                        input_data[column] = pd.to_numeric(input_data[column], errors='coerce')  # Handle numerical data
+                        input_data[column] = pd.to_numeric(input_data[column], errors='coerce')
 
-                if not unseen_label_detected:
-                    # Ensure all features are present in the input data
-                    for feature in feature_names:
-                        if feature not in input_data.columns:
-                            input_data[feature] = 0  # Set default value if feature is missing
+                # Ensure all features are present in the input data
+                for feature in feature_names:
+                    if feature not in input_data.columns:
+                        input_data[feature] = 0  # Set default value if feature is missing
 
-                    # Reorder columns to match the training data
-                    input_data = input_data[feature_names]
+                # Reorder columns to match the training data
+                input_data = input_data[feature_names]
 
-                    # Make the prediction
-                    prediction = model.predict(input_data)
-                    outcome = "Infected" if prediction[0] == 1 else "Not Infected"
-                    st.success(f"### Prediction Outcome: *{outcome}*")
-                else:
-                    st.warning("Some values were not seen during training, so default values were used for them.")
+                prediction = model.predict(input_data)
+                outcome = "Infected" if prediction[0] == 1 else "Not Infected"
+                st.success(f"### Prediction Outcome: *{outcome}*")
             except NotFittedError:
                 st.error("Model is not fitted yet.")
             except Exception as e:
