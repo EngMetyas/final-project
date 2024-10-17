@@ -169,13 +169,7 @@ if X is not None and y is not None:
         with st.form(key='prediction_form', clear_on_submit=True):
             user_inputs = {}
             for feature in feature_names:
-                if feature == "Smoking":  # Check if the feature is "Smoking"
-                    user_input = st.selectbox(
-                        label="Do you smoke?",
-                        options=["No", "Yes"]
-                    )
-                    user_inputs[feature] = 1 if user_input == "Yes" else 0  # Set 1 for "Yes" and 0 for "No"
-                elif X[feature].dtype in [np.int64, np.float64]:
+                if X[feature].dtype in [np.int64, np.float64]:
                     min_value = X[feature].min()
                     max_value = X[feature].max()
                     mean_value = X[feature].mean()
@@ -185,6 +179,7 @@ if X is not None and y is not None:
                         format="%.2f",
                         step=0.1
                     )
+                    user_inputs[feature] = user_input
                 else:
                     # Get the original categories from the label encoder
                     le = label_encoders.get(feature)
@@ -219,6 +214,7 @@ if X is not None and y is not None:
                             # Gracefully handle unseen label by assigning the most common class (or any default value)
                             st.warning(f"The value '{input_data[column][0]}' for '{column}' was not seen during training.")
                             input_data[column] = le.transform([le.classes_[0]])  # Use the first known class as default
+                            unseen_label_detected = True  # Set flag for unseen labels
                     else:
                         input_data[column] = pd.to_numeric(input_data[column], errors='coerce')  # Handle numerical data
 
@@ -235,6 +231,8 @@ if X is not None and y is not None:
                     prediction = model.predict(input_data)
                     outcome = "Infected" if prediction[0] == 1 else "Not Infected"
                     st.success(f"### Prediction Outcome: *{outcome}*")
+                else:
+                    st.warning("Some values were not seen during training, so default values were used for them.")
             except NotFittedError:
                 st.error("Model is not fitted yet.")
             except Exception as e:
