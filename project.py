@@ -15,6 +15,54 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# Custom CSS for styling
+st.markdown("""
+    <style>
+        body {
+            background: linear-gradient(135deg, #f3f4f6, #ffffff);
+            color: #333;
+            font-family: 'Arial', sans-serif;
+        }
+        .sidebar .sidebar-content {
+            background-color: #ff5722;
+            color: white;
+        }
+        .stButton > button {
+            background-color: #6200ea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 25px;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+        .stButton > button:hover {
+            background-color: #3700b3;
+        }
+        h1 {
+            color: #6200ea;
+            text-align: center;
+            font-size: 36px;
+        }
+        h2, h3 {
+            color: #ff5722;
+        }
+        .form-container {
+            background-color: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+        }
+        .footer {
+            font-size: 0.9em;
+            text-align: center;
+            padding: 20px;
+            color: #888;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 # Title of the web app
 st.title("🩺 Disease Prediction App")
 
@@ -26,42 +74,32 @@ Welcome to the **Disease Prediction App**! Select a dataset and enter the requir
 # Sidebar for navigation and dataset selection
 st.sidebar.header("Configuration")
 
-# Dataset selection
+# Dataset selection with emojis
 dataset_name = st.sidebar.selectbox(
     "Select Dataset",
-    ("Heart Disease", "Brain Stroke", "Diabetes")
+    ("Heart Disease ❤️", "Brain Stroke 🧠", "Diabetes 🍭")
 )
 
 # Define the path to datasets
 DATASETS = {
-    "Heart Disease": "Heart_cleanedML.csv",
-    "Brain Stroke": "brainstrokeML.csv",
-    "Diabetes": "diabetesML1.csv"
+    "Heart Disease ❤️": "Heart_cleanedML.csv",
+    "Brain Stroke 🧠": "brainstrokeML.csv",
+    "Diabetes 🍭": "diabetesML1.csv"
 }
-
 
 @st.cache_resource
 def load_data(name):
-    """
-    Load dataset based on the selected name.
-    Caches the data to optimize performance.
-    """
+    """Load dataset based on the selected name. Caches the data to optimize performance."""
     try:
         data = pd.read_csv(DATASETS[name])
         return data
     except FileNotFoundError:
-        st.error(f"Dataset file for {name} not found.")
+        st.error(f"Dataset file for {name} not found. Please check the file path.")
         return pd.DataFrame()
-
 
 @st.cache_resource
 def preprocess_data(df):
-    """
-    Preprocess the dataset:
-    - Handle missing values if any.
-    - Encode categorical variables.
-    - Split into features and target.
-    """
+    """Preprocess the dataset: handle missing values and encode categorical variables."""
     if df.empty:
         return None, None
 
@@ -77,15 +115,11 @@ def preprocess_data(df):
     X = df.iloc[:, :-1]  # Features
     y = df.iloc[:, -1]  # Target variable
 
-    return X, y
-
+    return X, y, label_encoders
 
 @st.cache_resource
 def train_model(X, y):
-    """
-    Train the Random Forest Classifier.
-    Caches the trained model to avoid retraining on every run.
-    """
+    """Train the Random Forest Classifier and return the model and accuracy."""
     try:
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.3, random_state=42
@@ -99,10 +133,9 @@ def train_model(X, y):
         st.error(f"Error in model training: {e}")
         return None, None, []
 
-
 # Load and preprocess data
 df = load_data(dataset_name)
-X, y = preprocess_data(df)
+X, y, label_encoders = preprocess_data(df)
 
 if X is not None and y is not None:
     model, accuracy, feature_names = train_model(X, y)
@@ -112,26 +145,24 @@ if X is not None and y is not None:
         st.subheader(f"{dataset_name} Dataset Preview")
         st.dataframe(df.head())
 
-        # Input fields for user values
+        # User input form
         st.subheader("Enter Values to Predict the Outcome")
-
-        # Create a form for user inputs
-        with st.form(key='prediction_form'):
+        with st.form(key='prediction_form', clear_on_submit=True):
             user_inputs = {}
             for feature in feature_names:
-                # Determine the input type based on feature data type
-                if X[feature].dtype == 'int64' or X[feature].dtype == 'float64':
+                if X[feature].dtype in [np.int64, np.float64]:
                     user_input = st.number_input(
                         label=f"Enter {feature}",
-                        value=float(X[feature].mean()),
-                        format="%.2f"
+                        value=0.0,  # Default value set to 0
+                        format="%.2f",
+                        step=0.1
                     )
                 else:
-                    # For categorical features, provide a selectbox with unique options
                     unique_values = sorted(df[feature].unique())
                     user_input = st.selectbox(
                         label=f"Select {feature}",
-                        options=unique_values
+                        options=unique_values,
+                        index=0  # Default to the first value
                     )
                 user_inputs[feature] = user_input
 
@@ -145,8 +176,13 @@ if X is not None and y is not None:
 
                 # Encode categorical inputs using the same label encoders
                 for column in input_data.select_dtypes(include=['object', 'category']).columns:
-                    le = LabelEncoder()
-                    input_data[column] = le.fit_transform(input_data[column])
+                    if column in label_encoders:
+                        input_data[column] = label_encoders[column].transform(input_data[column])
+
+                # Ensure all features are present in the input data
+                for feature in feature_names:
+                    if feature not in input_data.columns:
+                        input_data[feature] = 0  # Set default value if feature is missing
 
                 prediction = model.predict(input_data)
                 outcome = "Infected" if prediction[0] == 1 else "Not Infected"
