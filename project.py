@@ -194,9 +194,10 @@ if X is not None and y is not None:
                             label=f"Select {feature}",
                             options=categories
                         )
+                        user_inputs[feature] = user_input
                     else:
                         user_input = st.text_input(f"Enter {feature}")
-                user_inputs[feature] = user_input
+                        user_inputs[feature] = user_input
 
             # Submit button
             submit_button = st.form_submit_button(label='Predict')
