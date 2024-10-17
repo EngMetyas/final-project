@@ -204,7 +204,11 @@ if X is not None and y is not None:
                 for column in input_data.columns:
                     if column in label_encoders:
                         le = label_encoders[column]
-                        input_data[column] = le.transform([input_data[column][0]])  # Handle categorical data
+                        if input_data[column][0] in le.classes_:
+                            input_data[column] = le.transform([input_data[column][0]])  # Handle known categorical data
+                        else:
+                            st.error(f"Error: The value '{input_data[column][0]}' for '{column}' was not seen during training. Please select a valid value.")
+                            return  # Stop the prediction if unseen label is detected
                     else:
                         input_data[column] = pd.to_numeric(input_data[column], errors='coerce')  # Handle numerical data
 
@@ -216,6 +220,7 @@ if X is not None and y is not None:
                 # Reorder columns to match the training data
                 input_data = input_data[feature_names]
 
+                # Make the prediction
                 prediction = model.predict(input_data)
                 outcome = "Infected" if prediction[0] == 1 else "Not Infected"
                 st.success(f"### Prediction Outcome: *{outcome}*")
