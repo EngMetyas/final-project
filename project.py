@@ -111,7 +111,7 @@ def preprocess_data(df):
         df[column] = le.fit_transform(df[column])
         label_encoders[column] = le
 
-    X = df.iloc[:, :-1]  # Features
+    X = df.iloc[:, :-1]  # Features (excluding the target)
     y = df.iloc[:, -1]  # Target variable
 
     return X, y, label_encoders
@@ -148,9 +148,11 @@ if X is not None and y is not None:
         with st.form(key='prediction_form', clear_on_submit=True):
             user_inputs = {}
             for feature in feature_names:
+                if feature == "HeartDisease":  # Skip the target feature
+                    continue
                 if X[feature].dtype in [np.int64, np.float64]:
                     user_input = st.number_input(
-                        label=f"Enter {feature}",
+                        label=f"Enter {feature.replace('_', ' ').capitalize()}",
                         value=0.0,
                         format="%.2f",
                         step=0.1
@@ -158,7 +160,7 @@ if X is not None and y is not None:
                 else:
                     unique_values = sorted(df[feature].unique())
                     user_input = st.selectbox(
-                        label=f"Select {feature}",
+                        label=f"Select {feature.replace('_', ' ').capitalize()}",
                         options=unique_values,
                         index=0
                     )
