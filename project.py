@@ -103,14 +103,13 @@ def preprocess_data(df):
     if df.empty:
         return None, None
 
-    # Handle missing values if necessary
     df = df.dropna()
 
     label_encoders = {}
     for column in df.select_dtypes(include=['object', 'category']).columns:
         le = LabelEncoder()
         df[column] = le.fit_transform(df[column])
-        label_encoders[column] = le  # Store encoders for potential future use
+        label_encoders[column] = le
 
     X = df.iloc[:, :-1]  # Features
     y = df.iloc[:, -1]  # Target variable
@@ -141,10 +140,6 @@ if X is not None and y is not None:
     model, accuracy, feature_names = train_model(X, y)
 
     if model:
-        # Display dataset preview
-        st.subheader(f"{dataset_name} Dataset Preview")
-        st.dataframe(df.head())
-
         # User input form
         st.subheader("Enter Values to Predict the Outcome")
         with st.form(key='prediction_form', clear_on_submit=True):
@@ -153,7 +148,7 @@ if X is not None and y is not None:
                 if X[feature].dtype in [np.int64, np.float64]:
                     user_input = st.number_input(
                         label=f"Enter {feature}",
-                        value=0.0,  # Default value set to 0
+                        value=0.0,
                         format="%.2f",
                         step=0.1
                     )
@@ -162,7 +157,7 @@ if X is not None and y is not None:
                     user_input = st.selectbox(
                         label=f"Select {feature}",
                         options=unique_values,
-                        index=0  # Default to the first value
+                        index=0
                     )
                 user_inputs[feature] = user_input
 
