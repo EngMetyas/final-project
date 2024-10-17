@@ -82,9 +82,9 @@ dataset_name = st.sidebar.selectbox(
 
 # Define the path to datasets
 DATASETS = {
-    "Heart Disease ❤": "HeartDiseaseML1.csv",
-    "Brain Stroke 🧠": "brainstrokeML.csv",
-    "Diabetes 🍭": "diabetesML1.csv"
+    "Heart Disease ❤": "path/to/HeartDiseaseML1.csv",  # تأكد من وضع المسار الصحيح هنا
+    "Brain Stroke 🧠": "path/to/brainstrokeML.csv",
+    "Diabetes 🍭": "path/to/diabetesML1.csv"
 }
 
 @st.cache_resource
@@ -92,6 +92,8 @@ def load_data(name):
     """Load dataset based on the selected name. Caches the data to optimize performance."""
     try:
         data = pd.read_csv(DATASETS[name])
+        if data.empty:
+            st.warning(f"The dataset for {name} is empty. Please check the file.")
         return data
     except FileNotFoundError:
         st.error(f"Dataset file for {name} not found. Please check the file path.")
@@ -111,7 +113,7 @@ def preprocess_data(df):
         df[column] = le.fit_transform(df[column])
         label_encoders[column] = le
 
-    X = df.iloc[:, :-1]  # Features (excluding the target)
+    X = df.iloc[:, :-1]  # Features
     y = df.iloc[:, -1]  # Target variable
 
     return X, y, label_encoders
@@ -134,6 +136,11 @@ def train_model(X, y):
 
 # Load and preprocess data
 df = load_data(dataset_name)
+
+# Check if the dataframe is loaded successfully
+if df.empty:
+    st.stop()  # Stop the app execution if no data is loaded
+
 X, y, label_encoders = preprocess_data(df)
 
 if X is not None and y is not None:
@@ -148,11 +155,9 @@ if X is not None and y is not None:
         with st.form(key='prediction_form', clear_on_submit=True):
             user_inputs = {}
             for feature in feature_names:
-                if feature == "HeartDisease":  # Skip the target feature
-                    continue
                 if X[feature].dtype in [np.int64, np.float64]:
                     user_input = st.number_input(
-                        label=f"Enter {feature.replace('_', ' ').capitalize()}",
+                        label=f"Enter {feature}",
                         value=0.0,
                         format="%.2f",
                         step=0.1
@@ -160,7 +165,7 @@ if X is not None and y is not None:
                 else:
                     unique_values = sorted(df[feature].unique())
                     user_input = st.selectbox(
-                        label=f"Select {feature.replace('_', ' ').capitalize()}",
+                        label=f"Select {feature}",
                         options=unique_values,
                         index=0
                     )
