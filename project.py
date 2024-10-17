@@ -176,8 +176,6 @@ if X is not None and y is not None:
                     user_input = st.number_input(
                         label=f"Enter {feature} ({min_value} - {max_value})",
                         value=float(mean_value),
-                        min_value=float(min_value),
-                        max_value=float(max_value),
                         format="%.2f",
                         step=0.1
                     )
@@ -207,6 +205,7 @@ if X is not None and y is not None:
                 for column in input_data.columns:
                     if column in label_encoders:
                         le = label_encoders[column]
+                        # Check if the input value is known
                         if input_data[column][0] in le.classes_:
                             input_data[column] = le.transform([input_data[column][0]])  # Handle known categorical data
                         else:
