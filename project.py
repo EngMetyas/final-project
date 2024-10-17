@@ -258,4 +258,4 @@ if X is not None and y is not None:
         Dr. Moshera Ghallab
         """)
 else:
-    st.warning("Please select a
+    st.warning("Please select a valid dataset to proceed.")
