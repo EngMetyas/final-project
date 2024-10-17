@@ -216,9 +216,9 @@ if X is not None and y is not None:
                         if input_data[column][0] in le.classes_:
                             input_data[column] = le.transform([input_data[column][0]])  # Handle known categorical data
                         else:
-                            st.error(f"Error: The value '{input_data[column][0]}' for '{column}' was not seen during training. Please select a valid value.")
-                            unseen_label_detected = True  # Set the flag if unseen label is detected
-                            break  # Stop further processing if unseen label is found
+                            # Gracefully handle unseen label by assigning the most common class (or any default value)
+                            st.warning(f"The value '{input_data[column][0]}' for '{column}' was not seen during training.")
+                            input_data[column] = le.transform([le.classes_[0]])  # Use the first known class as default
                     else:
                         input_data[column] = pd.to_numeric(input_data[column], errors='coerce')  # Handle numerical data
 
