@@ -68,7 +68,7 @@ st.title("🩺 Disease Prediction App")
 
 # Introduction message
 st.markdown("""
-Welcome to the *Disease Prediction App*! Select a dataset from the sidebar and input the required values to determine if you're at risk of a particular disease.
+Welcome to the *Disease Prediction App*! Select a dataset and enter the required values to determine if you're at risk of a particular disease.
 """)
 
 # Sidebar for navigation and dataset selection
@@ -101,33 +101,12 @@ def load_data(name):
 def preprocess_data(df):
     """Preprocess the dataset: handle missing values and encode categorical variables."""
     if df.empty:
-        return None, None, None
+        return None, None
 
-    # Drop rows with missing values
     df = df.dropna()
 
-    # Reset index after dropping rows
-    df.reset_index(drop=True, inplace=True)
-
-    # Initialize label encoders dictionary
     label_encoders = {}
-
-    # Identify categorical and numerical columns
-    categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
-    numerical_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-
-    # Explicitly convert columns to appropriate data types
-    for col in df.columns:
-        if col in categorical_cols:
-            df[col] = df[col].astype(str)
-        else:
-            df[col] = pd.to_numeric(df[col], errors='coerce')
-
-    # Handle any remaining missing values after conversion
-    df = df.dropna()
-
-    # Encode categorical variables
-    for column in categorical_cols:
+    for column in df.select_dtypes(include=['object', 'category']).columns:
         le = LabelEncoder()
         df[column] = le.fit_transform(df[column])
         label_encoders[column] = le
@@ -170,26 +149,19 @@ if X is not None and y is not None:
             user_inputs = {}
             for feature in feature_names:
                 if X[feature].dtype in [np.int64, np.float64]:
-                    min_value = X[feature].min()
-                    max_value = X[feature].max()
-                    mean_value = X[feature].mean()
                     user_input = st.number_input(
-                        label=f"Enter {feature} ({min_value} - {max_value})",
-                        value=float(mean_value),
+                        label=f"Enter {feature}",
+                        value=0.0,
                         format="%.2f",
                         step=0.1
                     )
                 else:
-                    # Get the original categories from the label encoder
-                    le = label_encoders.get(feature)
-                    if le:
-                        categories = le.classes_
-                        user_input = st.selectbox(
-                            label=f"Select {feature}",
-                            options=categories
-                        )
-                    else:
-                        user_input = st.text_input(f"Enter {feature}")
+                    unique_values = sorted(df[feature].unique())
+                    user_input = st.selectbox(
+                        label=f"Select {feature}",
+                        options=unique_values,
+                        index=0
+                    )
                 user_inputs[feature] = user_input
 
             # Submit button
@@ -201,20 +173,14 @@ if X is not None and y is not None:
                 input_data = pd.DataFrame([user_inputs])
 
                 # Encode categorical inputs using the same label encoders
-                for column in input_data.columns:
+                for column in input_data.select_dtypes(include=['object', 'category']).columns:
                     if column in label_encoders:
-                        le = label_encoders[column]
-                        input_data[column] = le.transform([input_data[column][0]])
-                    else:
-                        input_data[column] = pd.to_numeric(input_data[column], errors='coerce')
+                        input_data[column] = label_encoders[column].transform(input_data[column])
 
                 # Ensure all features are present in the input data
                 for feature in feature_names:
                     if feature not in input_data.columns:
                         input_data[feature] = 0  # Set default value if feature is missing
-
-                # Reorder columns to match the training data
-                input_data = input_data[feature_names]
 
                 prediction = model.predict(input_data)
                 outcome = "Infected" if prediction[0] == 1 else "Not Infected"
