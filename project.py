@@ -68,7 +68,7 @@ st.title("🩺 Disease Prediction App")
 
 # Introduction message
 st.markdown("""
-Welcome to the Disease Prediction App! Select a dataset and enter the required values to determine if you're at risk of a particular disease.
+Welcome to the *Disease Prediction App*! Select a dataset and enter the required values to determine if you're at risk of a particular disease.
 """)
 
 # Sidebar for navigation and dataset selection
@@ -82,9 +82,9 @@ dataset_name = st.sidebar.selectbox(
 
 # Define the path to datasets
 DATASETS = {
-    "Heart Disease ❤": "path/to/HeartDiseaseML1.csv",  # تأكد من وضع المسار الصحيح هنا
-    "Brain Stroke 🧠": "path/to/brainstrokeML.csv",
-    "Diabetes 🍭": "path/to/diabetesML1.csv"
+    "Heart Disease ❤": "Heart_cleanedML.csv",
+    "Brain Stroke 🧠": "brainstrokeML.csv",
+    "Diabetes 🍭": "diabetesML1.csv"
 }
 
 @st.cache_resource
@@ -92,8 +92,6 @@ def load_data(name):
     """Load dataset based on the selected name. Caches the data to optimize performance."""
     try:
         data = pd.read_csv(DATASETS[name])
-        if data.empty:
-            st.warning(f"The dataset for {name} is empty. Please check the file.")
         return data
     except FileNotFoundError:
         st.error(f"Dataset file for {name} not found. Please check the file path.")
@@ -136,11 +134,6 @@ def train_model(X, y):
 
 # Load and preprocess data
 df = load_data(dataset_name)
-
-# Check if the dataframe is loaded successfully
-if df.empty:
-    st.stop()  # Stop the app execution if no data is loaded
-
 X, y, label_encoders = preprocess_data(df)
 
 if X is not None and y is not None:
@@ -191,7 +184,7 @@ if X is not None and y is not None:
 
                 prediction = model.predict(input_data)
                 outcome = "Infected" if prediction[0] == 1 else "Not Infected"
-                st.success(f"### Prediction Outcome: {outcome}")
+                st.success(f"### Prediction Outcome: *{outcome}*")
             except NotFittedError:
                 st.error("Model is not fitted yet.")
             except Exception as e:
@@ -199,13 +192,13 @@ if X is not None and y is not None:
 
         # Display model accuracy
         st.subheader("Model Performance")
-        st.write(f"Accuracy: {accuracy:.2f}")
+        st.write(f"*Accuracy:* {accuracy:.2f}")
 
         # Footer
         st.markdown("""
         ---
         ### About
-        This application is a simple machine learning web app created using Streamlit. Select a disease, input the required values, and receive real-time predictions!
+        This application is a simple machine learning web app created using *Streamlit*. Select a disease, input the required values, and receive real-time predictions!
 
         ### Developed by:
         - Metyas Monir
