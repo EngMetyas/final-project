@@ -176,6 +176,8 @@ if X is not None and y is not None:
                     user_input = st.number_input(
                         label=f"Enter {feature} ({min_value} - {max_value})",
                         value=float(mean_value),
+                        min_value=float(min_value),
+                        max_value=float(max_value),
                         format="%.2f",
                         step=0.1
                     )
