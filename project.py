@@ -204,9 +204,9 @@ if X is not None and y is not None:
                 for column in input_data.columns:
                     if column in label_encoders:
                         le = label_encoders[column]
-                        input_data[column] = le.transform([input_data[column][0]])
+                        input_data[column] = le.transform([input_data[column][0]])  # Handle categorical data
                     else:
-                        input_data[column] = pd.to_numeric(input_data[column], errors='coerce')
+                        input_data[column] = pd.to_numeric(input_data[column], errors='coerce')  # Handle numerical data
 
                 # Ensure all features are present in the input data
                 for feature in feature_names:
