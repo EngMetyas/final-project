@@ -6,6 +6,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
 from sklearn.exceptions import NotFittedError
+import plotly.express as px  # Import Plotly for visualizations
 
 # Set the page configuration
 st.set_page_config(
@@ -193,6 +194,16 @@ if X is not None and y is not None:
         # Display model accuracy
         st.subheader("Model Performance")
         st.write(f"*Accuracy:* {accuracy:.2f}")
+
+        # Display dataset overview
+        st.subheader(f"{dataset_name} Dataset Overview")
+        st.dataframe(df.head())
+
+        # Plot a feature distribution using Plotly
+        st.subheader(f"{dataset_name} Feature Distribution")
+        feature_to_plot = st.selectbox("Select a feature to visualize", df.columns)
+        fig = px.histogram(df, x=feature_to_plot, title=f"Distribution of {feature_to_plot}")
+        st.plotly_chart(fig)
 
         # Footer
         st.markdown("""
